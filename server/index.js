@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcrypt");  // For password hashing
 const UserModel = require("./models/user");
+const ProductModel = require("./models/product")
 
 const app = express();
 app.use(express.json());
@@ -61,12 +62,65 @@ app.post("/login", async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ error: "Incorrect password" });
     }
-    res.status(200).json({ message: "Login successful" });
+    res.status(200).json({ message: "Login successful",userEmail: user.email});
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ error: "Server error, please try again later" });
   }
 });
+
+
+//Add product
+app.post('/add-product', async (req, res) => {
+  const { id, name, href, images, imageAlt, price, color, sizes, type, condition, category, description, owner } = req.body;
+  console.log("Request Body:", req.body)
+
+  try {
+    // Check if product with the same ID already exists
+    const existingProduct = await ProductModel.findOne({ id });
+    if (existingProduct) {
+      return res.status(400).json({ error: "Product with this ID already exists" });
+    }
+
+    // Create a new product
+    const newProduct = new ProductModel({
+      id,
+      name,
+      href,
+      images,
+      imageAlt,
+      price,
+      color: color.split(','), // Convert string to array
+      sizes: sizes.split(','), // Convert string to array
+      type,
+      condition,
+      category,
+      description,
+      owner,
+    });
+
+    await newProduct.save();
+    res.status(201).json({ message: "Product added successfully" });
+  } catch (err) {
+    console.error("Error adding product:", err);
+    res.status(500).json({ error: "Server error, please try again later" });
+  }
+});
+
+
+// Backend: Fetch all products for a specific user
+app.post('/get-products', async (req, res) => {
+  const { ownerEmail } = req.body; // Assume ownerEmail is passed in the request body
+
+  try {
+    const products = await ProductModel.find({ owner: ownerEmail });
+    res.status(200).json(products); // Send the list of products as JSON response
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    res.status(500).json({ error: "Server error, please try again later" });
+  }
+});
+
 
 // Start the server
 app.listen(3001, () => {

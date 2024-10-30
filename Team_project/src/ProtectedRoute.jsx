@@ -1,10 +1,14 @@
+import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ element: Component }) => {
-  // Check if user is logged in (you can customize the logic as needed)
-  const isAuthenticated = localStorage.getItem('isAuthenticated');
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = localStorage.getItem('isAuthenticated'); // Or however you're managing auth
 
-  return isAuthenticated ? Component : <Navigate to="/login" />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 };
 
 export default ProtectedRoute;
