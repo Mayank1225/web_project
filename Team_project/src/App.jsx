@@ -1,10 +1,15 @@
 import React from "react";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import Home from "./Home";
 import ProtectedRoute from "./ProtectedRoute";
 import SignupPage from "./SignUpPage";
 import LoginPage from "./LoginPage";
 import AddProductPage from "../Pages/AddProductPage";
+import ProductDetail from "../component/ProductDetail";
 
 const router = createBrowserRouter([
   {
@@ -31,9 +36,13 @@ const router = createBrowserRouter([
     path: "/AddProduct",
     element: (
       <ProtectedRoute>
-        <AddProductPage/>
+        <AddProductPage />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/product/:productId", // Dynamic route for product details
+    element: <ProductDetail />,
   },
 ]);
 

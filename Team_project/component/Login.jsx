@@ -1,24 +1,19 @@
-// src/components/Login.js
-
-import React, { useState } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../feature/auth/authSlice";
 import { useNavigate, Link } from "react-router-dom";
+import { Form, Input, Button, Alert, Typography, Card } from "antd";
+
+const { Text } = Typography;
 
 const Login = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [form] = Form.useForm();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    dispatch(loginUser(formData)).then((response) => {
+  const { loading, error } = useSelector((state) => state.auth);
+  
+  const onFinish = (values) => {
+    dispatch(loginUser(values)).then((response) => {
       if (response.type === "auth/loginUser/fulfilled") {
         navigate("/Home");
       }
@@ -26,52 +21,70 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        {error && <div className="mb-4 text-red-600">{error}</div>} {/* Display error message */}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              className="block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-indigo-200"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-              className="block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-indigo-200"
-            />
-          </div>
-          <button
-            type="submit"
-            className={`mt-10 w-full bg-indigo-600 text-white font-bold py-2 rounded-md hover:bg-indigo-500 focus:outline-none focus:ring focus:ring-indigo-200 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-            disabled={loading}
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-        <div className="mt-4 text-center">
-          <p className="text-gray-600">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-indigo-600 hover:underline">Register here</Link>
-          </p>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <Card className="w-full max-w-md p-6 shadow-md">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800">Login</h2>
+          <p className="text-gray-500">Access your account</p>
         </div>
-      </div>
-      
+
+        {error && (
+          <Alert
+            message={error}
+            type="error"
+            showIcon
+            className="mb-4"
+          />
+        )}
+
+        <Form
+          form={form}
+          name="login"
+          onFinish={onFinish}
+          initialValues={{ email: "", password: "" }}
+          layout="vertical"
+        >
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: "Please enter your email!" },
+              { type: "email", message: "Please enter a valid email!" }
+            ]}
+          >
+            <Input placeholder="Email" className="rounded-md p-2" />
+          </Form.Item>
+
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "Please enter your password!" }]}
+          >
+            <Input.Password placeholder="Password" className="rounded-md p-2" />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              loading={loading}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-md py-2 transition duration-300"
+            >
+              {loading ? "Logging in..." : "Login"}
+            </Button>
+          </Form.Item>
+        </Form>
+
+        <div className="text-center mt-4">
+          <Text type="secondary" className="text-gray-600">
+            Don't have an account?{" "}
+            <Link to="/register" className="text-indigo-600 hover:underline">
+              Register here
+            </Link>
+          </Text>
+        </div>
+      </Card>
     </div>
   );
 };

@@ -25,3 +25,42 @@ export const getUserProducts = async (ownerEmail) => {
     throw new Error("Network error. Please try again later.");
   }
 };
+
+
+export const getProductById = async (productId) => {
+  try {
+    const response = await axios.get(`${API_URL}/get-product/${productId}`);
+    return response.data; // Return the product data on success
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.error || "Failed to fetch product.");
+    }
+    throw new Error("Network error. Please try again later.");
+  }
+};
+
+export const updateProduct = async (productId, updatedData) => {
+  try {
+    console.log("\n\n\n\nproduct", productId, {...updatedData})
+    const response = await axios.patch(`${API_URL}/update-product/${productId}`, updatedData);
+    return response.data; // Return updated product data
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.error || 'Failed to update product.');
+    }
+    throw new Error('Network error. Please try again later.');
+  }
+};
+
+
+export const deleteProduct = async (productId) => {
+  try {
+    const response = await axios.delete(`${API_URL}/delete-product/${productId}`);
+    return response.data; // Returns success message on deletion
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.error || "Failed to delete product.");
+    }
+    throw new Error("Network error. Please try again later.");
+  }
+};

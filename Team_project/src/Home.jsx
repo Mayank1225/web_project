@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Disclosure,
@@ -9,7 +9,32 @@ import {
 } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserProducts } from '../feature/product/productSlice'; // Import your fetchUserProducts thunk
+import {
+  deleteProduct,
+  fetchUserProducts,
+  updateProduct,
+} from "../feature/product/productSlice"; // Import your fetchUserProducts thunk
+import {
+  Card,
+  Button,
+  Badge,
+  Modal,
+  Descriptions,
+  Tag,
+  Avatar,
+  Carousel,
+  message,
+  Spin,
+  Breadcrumb,
+} from "antd";
+import EditProduct from "../component/EditProduct";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
+import DeleteProduct from "../component/DeleteProduct";
+import Navbar from "../component/Navbar";
 
 const navigation = [
   { name: "Dashboard", href: "/home", current: true },
@@ -26,11 +51,23 @@ const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+  const { confirm } = Modal;
 
-  // Get user products from Redux store
   const { products, loading, error } = useSelector((state) => state.product);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [hoveredProductId, setHoveredProductId] = useState(null);
 
-  // Get the current user's email from local storage or state (adjust according to your auth logic)
+  const handleEditClick = (product) => {
+    setSelectedProduct(product); // Set the selected product for editing
+    setIsModalVisible(true); // Show the modal
+  };
+
+  const handleModalClose = () => {
+    setIsModalVisible(false); // Hide the modal
+    setSelectedProduct(null); // Clear the selected product
+  };
+
   const userEmail = localStorage.getItem("user");
 
   const handleLogout = () => {
@@ -40,18 +77,41 @@ const Home = () => {
   };
 
   useEffect(() => {
-    console.log("Checking userEmail:", userEmail); // Log userEmail
     if (userEmail) {
-      console.log("Dispatching fetchUserProducts");
       dispatch(fetchUserProducts(userEmail));
-
-      console.log(products)
     }
   }, [dispatch, userEmail]);
 
+  const handleUpdate = (updatedProduct) => {
+    dispatch(
+      updateProduct({
+        productId: updatedProduct.id,
+        updatedData: { ...updatedProduct },
+      })
+    ).then(() => {
+      dispatch(fetchUserProducts(userEmail)); // Re-fetch to ensure updated data is shown
+    });
+  };
+
+  const handleDelete = (product) => {
+    confirm({
+      title: "Are you sure you want to delete this product?",
+      icon: <ExclamationCircleOutlined />,
+      content: <DeleteProduct product={product} />,
+      okText: "Yes",
+      okType: "danger",
+      cancelText: "No",
+      onOk() {
+        console.log("hiiiiiiiii\n\n\n\n");
+        dispatch(deleteProduct(product.id));
+      },
+    });
+  };
+
   return (
     <>
-      <Disclosure as="nav" className="bg-gray-800">
+    <Navbar ></Navbar>
+      {/* <Disclosure as="nav" className="bg-gray-800">
         <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
           <div className="relative flex h-16 items-center justify-between">
             <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -106,7 +166,6 @@ const Home = () => {
                 <BellIcon aria-hidden="true" className="h-6 w-6" />
               </button>
 
-              {/* Profile dropdown */}
               <Menu as="div" className="relative ml-3">
                 <div>
                   <MenuButton className="relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
@@ -127,7 +186,9 @@ const Home = () => {
                     {({ active }) => (
                       <Link
                         to="/profile"
-                        className={`block px-4 py-2 text-sm ${active ? "bg-gray-100" : "text-gray-700"}`}
+                        className={`block px-4 py-2 text-sm ${
+                          active ? "bg-gray-100" : "text-gray-700"
+                        }`}
                       >
                         Your Profile
                       </Link>
@@ -137,7 +198,9 @@ const Home = () => {
                     {({ active }) => (
                       <Link
                         to="/settings"
-                        className={`block px-4 py-2 text-sm ${active ? "bg-gray-100" : "text-gray-700"}`}
+                        className={`block px-4 py-2 text-sm ${
+                          active ? "bg-gray-100" : "text-gray-700"
+                        }`}
                       >
                         Settings
                       </Link>
@@ -147,7 +210,9 @@ const Home = () => {
                     {({ active }) => (
                       <button
                         onClick={handleLogout}
-                        className={`block w-full text-left px-4 py-2 text-sm ${active ? "bg-gray-100" : "text-gray-700"}`}
+                        className={`block w-full text-left px-4 py-2 text-sm ${
+                          active ? "bg-gray-100" : "text-gray-700"
+                        }`}
                       >
                         Sign out
                       </button>
@@ -179,46 +244,129 @@ const Home = () => {
             ))}
           </div>
         </DisclosurePanel>
-      </Disclosure>
+      </Disclosure> */}
       <header className="bg-white shadow">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          <Breadcrumb>
+              <Breadcrumb.Item>
+                <Link to="/home">Dashboard</Link>
+              </Breadcrumb.Item>
+            </Breadcrumb>
+          </h1>
         </div>
       </header>
       <main>
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="bg-white">
-            <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 xl:gap-x-8">
-              {loading && <p>Loading products...</p>} {/* Show loading indicator */}
-              {error && <p className="text-red-500">{error}</p>} {/* Show error message */}
-              {!loading && !error && products.map((product) => (
-                <div key={product.id} className="group relative">
-                  <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
-                    <img
-                      alt={product.imageAlt}
-                      src={product.images[0]} // Use the first image from the images array
-                      className="h-full w-full object-cover object-center lg:h-full lg:w-full"
-                    />
-                  </div>
-                  <div className="mt-4 flex justify-between">
-                    <div>
-                      <h3 className="text-sm text-gray-700">
-                        <Link to={product.href}>
-                          <span aria-hidden="true" className="absolute inset-0" />
-                          {product.name}
-                        </Link>
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Color: {product.color.join(", ")}
-                      </p>
-                    </div>
-                    <p className="text-sm font-medium text-gray-900">{product.price}</p>
-                  </div>
-                </div>
-              ))}
+          <Spin spinning={loading}>
+            {error && <p className="text-red-500">{error}</p>}{" "}
+            {/* Show error message */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {/* Map over products and create a card for each */}
+              {!loading &&
+                !error &&
+                products?.map((product, i) => (
+                  <Badge.Ribbon text={product.condition} key={i}>
+                    <Card
+                      key={product.id}
+                      hoverable
+                      onMouseEnter={() => setHoveredProductId(product.id)}
+                      onMouseLeave={() => setHoveredProductId(null)}
+                      cover={
+                        <Carousel
+                          autoplay={hoveredProductId === product.id}
+                          autoplaySpeed={2000}
+                        >
+                          {product?.images?.map((image, index) => (
+                            <img
+                              key={index}
+                              alt={product.imageAlt}
+                              src={image}
+                              className="h-64 object-cover object-center"
+                            />
+                          ))}
+                        </Carousel>
+                      }
+                      actions={[
+                        <Button
+                          type="link"
+                          icon={<EditOutlined />}
+                          onClick={() => handleEditClick(product)}
+                        >
+                          Edit
+                        </Button>,
+                        <Button
+                          type="link"
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleDelete(product)}
+                          danger
+                        >
+                          Delete
+                        </Button>,
+                      ]}
+                      className="shadow-md" // Optional: adds a shadow for a subtle depth effect
+                    >
+                      <Card.Meta
+                        title={
+                          <Link
+                            to={`/product/${product.id}`}
+                            className="text-lg font-medium text-gray-800"
+                          >
+                            {product.name}
+                          </Link>
+                        }
+                        description={
+                          <Descriptions
+                            column={1}
+                            size="small"
+                            bordered={false}
+                          >
+                            {/* Discount Tag */}
+                            {/* <Descriptions.Item label="">
+                            <Tag color="red" style={{ fontSize: "0.85em" }}>
+                              0% OFF
+                            </Tag>
+                          </Descriptions.Item> */}
+
+                            {/* Color Circles */}
+                            <Descriptions.Item label="">
+                              <div style={{ display: "flex", gap: "5px" }}>
+                                {product?.color?.map((col) => (
+                                  <Avatar
+                                    key={col}
+                                    shape="circle"
+                                    style={{ backgroundColor: col }}
+                                    size={18}
+                                  />
+                                ))}
+                              </div>
+                            </Descriptions.Item>
+
+                            {/* Price with Badge */}
+                            <Descriptions.Item label="">
+                              <span className="text-lg font-semibold text-gray-900">
+                                ${product.price}
+                              </span>
+                            </Descriptions.Item>
+                          </Descriptions>
+                        }
+                      />
+                    </Card>
+                  </Badge.Ribbon>
+                ))}
             </div>
-          </div>
+          </Spin>
         </div>
+
+        {/* Edit Product Modal */}
+        {selectedProduct && (
+          <EditProduct
+            open={isModalVisible}
+            onClose={handleModalClose}
+            onUpdate={handleUpdate}
+            product={selectedProduct}
+          />
+        )}
       </main>
     </>
   );
