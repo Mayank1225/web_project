@@ -1,7 +1,7 @@
 // src/redux/productSlice.js
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { addProduct as addProductAPI, getUserProducts, deleteProduct as deleteProductAPI, updateProduct as updateProductAPI, getProductById } from '../product/productAPI';
+import { addProduct as addProductAPI, getUserProducts, deleteProduct as deleteProductAPI, updateProduct as updateProductAPI, getProductById, getAllProducts } from '../product/productAPI';
 
 // Define an initial state
 const initialState = {
@@ -53,8 +53,6 @@ export const deleteProduct = createAsyncThunk(
   async (productId, { rejectWithValue }) => {
     try {
       const data = await deleteProductAPI(productId);
-
-      console.log("\n\n\n\n", { ...data })
       return productId; // Pass the ID back to remove it from the state
     } catch (error) {
       return rejectWithValue(error.message);
@@ -87,6 +85,19 @@ export const fetchUserProducts = createAsyncThunk(
     }
   }
 );
+
+export const fetchAllProducts = createAsyncThunk(
+  'product/fetchAllProducts',
+  async (_,{rejectWithValue }) => {
+    try {
+      const products = await getAllProducts();
+      return products;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 // Create the product slice
 const productSlice = createSlice({
   name: 'product',
@@ -162,6 +173,18 @@ const productSlice = createSlice({
       .addCase(fetchProductById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to fetch product.";
+      })
+      .addCase(fetchAllProducts.pending, (state) => {
+        state.loading = true; // Set loading state
+        state.error = null; // Reset error state
+      })
+      .addCase(fetchAllProducts.fulfilled, (state, action) => {
+        state.loading = false; // Reset loading state
+        state.products = action.payload; // Populate products with fetched data
+      })
+      .addCase(fetchAllProducts.rejected, (state, action) => {
+        state.loading = false; // Reset loading state
+        state.error = action.payload || 'Something went wrong'; // Set error message
       });
 
   }

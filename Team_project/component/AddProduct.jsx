@@ -14,7 +14,7 @@ import {
 } from "antd"; // <-- Import Image here
 import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import ImgCrop from "antd-img-crop";
-import { categories, COLORS, conditions, types } from "../Constant/const";
+import { categories, COLORS, conditions, SIZES, types } from "../Constant/const";
 import Notify from "./Notify";
 import { Navigate } from "react-router-dom";
 
@@ -30,9 +30,17 @@ const generateProductId = () => {
   return result;
 };
 
+const getBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+
 const AddProduct = () => {
   const dispatch = useDispatch();
-  const username = localStorage.getItem("user") || "Guest";
+  const username = localStorage.getItem("user");
   const [form] = Form.useForm();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
@@ -43,12 +51,10 @@ const AddProduct = () => {
   const [product, setProductState] = useState({
     ...productIntial,
     owner: username,
-    id: generateProductId(), // Generate a new unique ID for productId on load
+    id: generateProductId(), 
   });
 
   const [fileList, setFileList] = useState([]);
-
-  const sizes = Array.from({ length: 10 }, (_, i) => (i + 3).toString());
 
   const handleChange = (name, value) => {
     setProductState({ ...product, [name]: value });
@@ -252,9 +258,9 @@ const AddProduct = () => {
                   onChange={(value) => handleChange("sizes", value)}
                   size="large"
                 >
-                  {sizes.map((size) => (
-                    <Option key={size} value={size}>
-                      {size}
+                  {SIZES.map((size) => (
+                    <Option key={size} value={size.name}>
+                      {size.name}
                     </Option>
                   ))}
                 </Select>

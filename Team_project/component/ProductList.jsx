@@ -23,9 +23,11 @@ const ProductList = ({ products, loading, error, onDelete, onUpdate }) => {
     handleModalClose(); // Close the modal after updating
   };
 
+
   return (
     <></>
   );
 };
+
 
 export default ProductList;

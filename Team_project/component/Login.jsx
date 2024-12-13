@@ -2,90 +2,135 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../feature/auth/authSlice";
 import { useNavigate, Link } from "react-router-dom";
-import { Form, Input, Button, Alert, Typography, Card } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Typography,
+  Card,
+  Layout,
+  Space,
+  ConfigProvider,
+} from "antd";
+import Notify from "../component/Notify"; // Import your Notify component
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
+const { Content } = Layout;
 
 const Login = () => {
   const [form] = Form.useForm();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
-  
+  const navigation = useSelector((state) => state.navigation.filteredItems);
+
   const onFinish = (values) => {
     dispatch(loginUser(values)).then((response) => {
       if (response.type === "auth/loginUser/fulfilled") {
-        navigate("/Home");
+        const { userType } = response.payload;
+        Notify({
+          type: "success",
+          message: "Login Successful",
+          description: "You have successfully logged in!",
+        });
+
+        if (userType === "seller") {
+          navigate("/home"); // Redirect to seller dashboard
+        } else if (userType === "buyer") {
+          navigate("/products"); // Redirect to buyer products page
+        }
+      } else if (response.type === "auth/loginUser/rejected") {
+        Notify({
+          type: "error",
+          message: "Login Failed",
+          description: error || "Invalid email or password.",
+        });
       }
     });
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-full max-w-md p-6 shadow-md">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800">Login</h2>
-          <p className="text-gray-500">Access your account</p>
-        </div>
-
-        {error && (
-          <Alert
-            message={error}
-            type="error"
-            showIcon
-            className="mb-4"
-          />
-        )}
-
-        <Form
-          form={form}
-          name="login"
-          onFinish={onFinish}
-          initialValues={{ email: "", password: "" }}
-          layout="vertical"
+    <Layout style={{ minHeight: "100vh", backgroundColor: "#f0f2f5" }}>
+      <Content
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "20px",
+        }}
+      >
+        <Card
+          style={{ maxWidth: 500, width: "100%", padding: "24px" }}
+          bordered
         >
-          <Form.Item
-            label="Email"
-            name="email"
-            rules={[
-              { required: true, message: "Please enter your email!" },
-              { type: "email", message: "Please enter a valid email!" }
-            ]}
-          >
-            <Input placeholder="Email" className="rounded-md p-2" />
-          </Form.Item>
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            <img
+              alt="Your Company"
+              src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
+              style={{ height: 40, width: "auto", margin: "0 auto" }}
+            />
+            <Title level={3} style={{ margin: 0, textAlign: "center" }}>
+              Sign in to your account
+            </Title>
 
-          <Form.Item
-            label="Password"
-            name="password"
-            rules={[{ required: true, message: "Please enter your password!" }]}
-          >
-            <Input.Password placeholder="Password" className="rounded-md p-2" />
-          </Form.Item>
+            <div style={{ textAlign: "center" }}>
+              <Title level={3}>Login</Title>
+              <Text type="secondary">Access your account</Text>
+            </div>
 
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              size="large"
-              loading={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-md py-2 transition duration-300"
+            <Form
+              form={form}
+              name="login"
+              onFinish={onFinish}
+              initialValues={{ email: "", password: "" }}
+              layout="vertical"
+              style={{ marginTop: "16px" }}
             >
-              {loading ? "Logging in..." : "Login"}
-            </Button>
-          </Form.Item>
-        </Form>
+              <Form.Item
+                label="Email"
+                name="email"
+                rules={[
+                  { required: true, message: "Please enter your email!" },
+                  { type: "email", message: "Please enter a valid email!" },
+                ]}
+              >
+                <Input placeholder="Email" />
+              </Form.Item>
 
-        <div className="text-center mt-4">
-          <Text type="secondary" className="text-gray-600">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-indigo-600 hover:underline">
-              Register here
-            </Link>
-          </Text>
-        </div>
-      </Card>
-    </div>
+              <Form.Item
+                label="Password"
+                name="password"
+                rules={[
+                  { required: true, message: "Please enter your password!" },
+                ]}
+              >
+                <Input.Password placeholder="Password" />
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  size="large"
+                  loading={loading}
+                  block
+                >
+                  {loading ? "Logging in..." : "Login"}
+                </Button>
+              </Form.Item>
+            </Form>
+            <div style={{ textAlign: "center" }}>
+              <Text type="secondary">
+                Don't have an account?{" "}
+                <Link to="/register" style={{ color: "#1890ff" }}>
+                  Register here
+                </Link>
+              </Text>
+            </div>
+          </Space>
+        </Card>
+      </Content>
+    </Layout>
   );
 };
 

@@ -8,8 +8,6 @@ const Logout = () => {
   const handleLogout = () => {
     // Clear user authentication status (in this case, from localStorage)
     localStorage.removeItem("isAuthenticated");
-
-    // Redirect to login page
     navigate("/login");
   };
 

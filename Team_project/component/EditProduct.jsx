@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Form, Input, Select, Button, Upload, message } from "antd";
+import { Modal, Form, Input, Select, Button, Upload, message, Image } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import ImgCrop from "antd-img-crop";
 import { categories, COLORS, conditions, types } from "../Constant/const";
-
 
 const { Option } = Select;
 const getBase64 = (file) =>
@@ -14,11 +13,12 @@ const getBase64 = (file) =>
     reader.onerror = (error) => reject(error);
   });
 
-
 const EditProduct = ({ open, onClose, onUpdate, product }) => {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
 
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState("");
 
   useEffect(() => {
     if (product) {
@@ -27,15 +27,14 @@ const EditProduct = ({ open, onClose, onUpdate, product }) => {
       if (product.images) {
         const existingImages = product.images.map((url, index) => ({
           uid: `-image-${index}`,
-          name: `Image-${index+1}`,
+          name: `Image-${index + 1}`,
           url, // Set URL from Cloudinary
-          status: 'done', // Mark as uploaded
+          status: "done", // Mark as uploaded
         }));
         setFileList(existingImages);
       }
     }
   }, [product, form]);
-
 
   const handleFileChange = async ({ fileList: newFileList }) => {
     const processedFiles = await Promise.all(
@@ -52,7 +51,6 @@ const EditProduct = ({ open, onClose, onUpdate, product }) => {
       images: processedFiles.map((file) => file.url),
     });
   };
-  
 
   const handlePreview = async (file) => {
     let src = file.url;
@@ -63,24 +61,28 @@ const EditProduct = ({ open, onClose, onUpdate, product }) => {
         reader.onload = () => resolve(reader.result);
       });
     }
-    const imgWindow = window.open(src);
-    imgWindow?.document.write(`<img src="${src}" style="width:100%"/>`);
+
+    setPreviewImage(file.url || file.preview);
+    setPreviewOpen(true);
   };
 
   const handleUpdate = async () => {
     try {
       const values = await form.validateFields();
-      const updatedProduct = { ...values, id: product.id, owner: product.owner};
+      const updatedProduct = {
+        ...values,
+        id: product.id,
+        owner: product.owner,
+      };
       if (fileList.length > 0) {
-        updatedProduct.images = fileList.map(file => file.url);
+        updatedProduct.images = fileList.map((file) => file.url);
       }
-      onUpdate(updatedProduct); // Callback for parent to update the UI
-      onClose(); // Close the modal
+      onUpdate(updatedProduct);
+      onClose(); 
     } catch (error) {
       console.log("Validation failed:", error);
     }
   };
-
 
   return (
     <Modal
@@ -109,7 +111,9 @@ const EditProduct = ({ open, onClose, onUpdate, product }) => {
         <Form.Item
           label="Product Name"
           name="name"
-          rules={[{ required: true, message: "Please input the product name!" }]}
+          rules={[
+            { required: true, message: "Please input the product name!" },
+          ]}
         >
           <Input />
         </Form.Item>
@@ -128,12 +132,26 @@ const EditProduct = ({ open, onClose, onUpdate, product }) => {
               {fileList.length < 5 && "+ Upload"}
             </Upload>
           </ImgCrop>
+          {previewImage && (
+            <Image
+              width={200}
+              height={200}
+              src={previewImage}
+              preview={{
+                visible: previewOpen,
+                onVisibleChange: (visible) => setPreviewOpen(visible),
+                afterOpenChange: (visible) => !visible && setPreviewImage(""),
+              }}
+            />
+          )}
         </Form.Item>
 
         <Form.Item
           label="Image Alt Text"
           name="imageAlt"
-          rules={[{ required: true, message: "Please input the image alt text!" }]}
+          rules={[
+            { required: true, message: "Please input the image alt text!" },
+          ]}
         >
           <Input />
         </Form.Item>
@@ -149,7 +167,9 @@ const EditProduct = ({ open, onClose, onUpdate, product }) => {
         <Form.Item
           label="Colors"
           name="color"
-          rules={[{ required: true, message: "Please select at least one color!" }]}
+          rules={[
+            { required: true, message: "Please select at least one color!" },
+          ]}
         >
           <Select
             mode="tags"
@@ -192,7 +212,9 @@ const EditProduct = ({ open, onClose, onUpdate, product }) => {
         <Form.Item
           label="Type"
           name="type"
-          rules={[{ required: true, message: "Please select the product type!" }]}
+          rules={[
+            { required: true, message: "Please select the product type!" },
+          ]}
         >
           <Select placeholder="Select type">
             {types.map((type) => (
@@ -206,7 +228,9 @@ const EditProduct = ({ open, onClose, onUpdate, product }) => {
         <Form.Item
           label="Condition"
           name="condition"
-          rules={[{ required: true, message: "Please select the product condition!" }]}
+          rules={[
+            { required: true, message: "Please select the product condition!" },
+          ]}
         >
           <Select placeholder="Select condition">
             {conditions.map((condition) => (
